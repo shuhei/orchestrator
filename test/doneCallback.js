@@ -4,6 +4,7 @@
 
 var Orchestrator = require('../');
 var Q = require('q');
+var stream = require('stream');
 var should = require('should');
 require('mocha');
 
@@ -87,6 +88,32 @@ describe('orchestrator', function() {
 					deferred.reject(expectedErr);
 				},1);
 				return deferred.promise;
+			});
+
+			// Act
+			orchestrator.start('test', function(actualErr) {
+				// Assert
+				a.should.equal(1);
+				should.exist(actualErr);
+				actualErr.should.equal(expectedErr);
+				orchestrator.isRunning.should.equal(false);
+				done();
+			});
+		});
+
+		it('should have error on stream error', function(done) {
+			var orchestrator, a, expectedErr = 'the error message';
+
+			// Arrange
+			orchestrator = new Orchestrator();
+			a = 0;
+			orchestrator.add('test', function () {
+				var errorStream = new stream.Stream();
+				setTimeout(function () {
+					++a;
+					errorStream.emit('error', expectedErr);
+				},1);
+				return errorStream;
 			});
 
 			// Act
